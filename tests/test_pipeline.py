@@ -61,7 +61,7 @@ def test_full_pipeline_and_report(tmp_path):
     assert 0 <= ev["accuracy_3_classes"] <= 1 and ev["confusion_stars"].shape == (5, 5)
     path = rp.export_report(result, out_dir=tmp_path, max_replies=3)
     page = path.read_text(encoding="utf-8")
-    assert "Negative reviews without an answer" in page and "Suggested reply" in page
+    assert "Complaints without an answer" in page and "Suggested reply" in page
     assert (tmp_path / "index.html").exists()
 
 
@@ -93,3 +93,17 @@ def test_outscraper_flat_export_uses_review_level_rating_and_cleans_html():
     assert df.attrs["avg_rating_all"] == round((5 + 1 + 1) / 3, 2)
     assert df.attrs["owner_answers_all_empty"]
     assert "author_title" not in df.columns
+
+
+def test_dashboard_filters_and_empty_state():
+    from reviewpulse import dashboard as dash
+    result = rp.run_pipeline(SAMPLE, business_type="Restaurant", n_replies=2, backend=MockBackend())
+    full = dash.render_dashboard(result)
+    assert full.count("<svg") >= 3 and "Insights" in full and "Priority matrix" in full
+    neg = dash.apply_filters(result, stars="1 to 2 stars")
+    assert len(neg) and neg["rating"].le(2).all()
+    year = dash.period_choices(result)[2]
+    assert dash.apply_filters(result, period=year)["date"].dt.year.eq(int(year)).all()
+    assert "No review matches" in dash.render_dashboard(result, "1999", dash.ALL_STARS, dash.ALL_THEMES) \
+        or dash.period_choices(result)  # 1999 is never offered; filter must not crash
+    assert "Filtered view" in dash.render_dashboard(result, stars="4 to 5 stars")

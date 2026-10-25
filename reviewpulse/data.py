@@ -145,6 +145,11 @@ def load_reviews(source, max_reviews: int | None = None, place_name: str | None 
         "n_rating_only": int(df["text"].map(_is_blank).sum()),
         "avg_rating_all": round(float(df["rating"].mean()), 2) if df["rating"].notna().any() else None,
         "owner_answers_all_empty": bool(has_answer_column and not df["answered"].any()),
+        # Every (date, stars) pair, star-only reviews included: used for the rating trend chart.
+        "all_ratings": [
+            (d.isoformat() if pd.notna(d) else None, float(r))
+            for d, r in zip(df["date"], df["rating"]) if pd.notna(r)
+        ],
     }
 
     # Clean: drop empty / placeholder texts and exact duplicates.

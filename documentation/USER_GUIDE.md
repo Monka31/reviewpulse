@@ -37,19 +37,29 @@ It prints the key figures and writes `outputs/<business>_analyzed.csv` and `docs
 
 ## Using the app
 
-1. **Review file**: upload a CSV or Excel file, or pick one of the datasets in the list.
+Left panel, **New analysis**:
+
+1. **Review file**: drop an Outscraper Excel/CSV export (or any CSV/Excel with a text column), or pick a dataset of the project in the list. A dropped file always takes priority over the list.
 2. **Business name**: optional, read from the file when possible.
-3. **Business type**: selects a list of themes adapted to restaurants, schools, hotels or stores. You can edit the themes (comma-separated, 10 at most).
-4. Click **Analyze reviews**. About 1 to 2 minutes for 300 reviews on a T4 GPU.
+3. **Business type**: selects themes adapted to restaurants, schools, hotels or stores. You can edit the themes (comma-separated, 10 at most).
+4. **Summary language**: language of the AI diagnosis (reply drafts always use the language of each review).
+5. Click **Analyze reviews**. About 1 to 2 minutes for 300 reviews on a T4 GPU. "Advanced settings" sets the maximum number of reviews and how many reply drafts are written during the analysis (5 by default).
 
-Tabs:
+Right side, the **dashboard**:
 
-- **Overview**: key figures, AI diagnosis with three priority actions, themes chart (positive, neutral and negative reviews per theme), star distribution and monthly trend.
-- **Unanswered reviews**: negative reviews with no reply from the owner. Requires an owner-reply column in the file.
-- **Reply assistant**: choose a review and click **Draft a reply**. The reply is written in the language of the review. Always check and adapt it before posting.
-- **Model evaluation**: how often the AI agrees with the stars customers actually gave, compared with a naive baseline.
-- **All reviews**: every review with its predicted sentiment and themes, downloadable as CSV.
-- **Export report**: builds a static HTML report including reply drafts, ready to publish.
+- Key figures: average rating (star-only ratings included), written reviews, share of negative reviews, complaints left unanswered.
+- **AI diagnosis**: strengths, points to improve and three priority actions written by the language model.
+- **Insights**: sentiment donut, share of mentions by theme, rating and complaints over time, priority matrix (which themes to fix first), average stars by theme.
+- **What people talk about** and **Star ratings**, with the measured reliability of the AI on these reviews.
+- **Complaints without an answer**, the most recent first, with AI reply drafts.
+
+The **filters** above the dashboard (period, stars, theme) re-slice the analyzed reviews instantly, without running the models again. Example: 1 to 2 stars + "admissions" + 2025.
+
+Below the dashboard:
+
+- **Reply assistant**: pick a negative review (unanswered ones first) and click **Draft a reply**. The draft also appears in the review's card. Always check and adapt it before posting.
+- **Model evaluation**: how often the AI agrees with the stars customers gave, compared with a naive baseline, plus a confusion matrix.
+- **All reviews and export**: every review with its predicted sentiment and themes (downloadable CSV), and **Build the HTML report** to publish the same dashboard on GitHub Pages.
 
 ## Analyzing your own reviews
 

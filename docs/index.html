@@ -1,32 +1,62 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>ReviewPulse</title>
-<style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#1f2933;--muted:#5f6b7a;--line:#e3e7ec;--accent:#3b5bdb;
---pos:#2f9e5b;--neg:#d64545;--neu:#9aa1a9}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
-font:15px/1.55 Inter,"Segoe UI",Arial,sans-serif}
-main{max-width:1080px;margin:0 auto;padding:28px 16px 60px}
-header h1{margin:0 0 4px;font-size:28px}header p{margin:0;color:var(--muted)}
-.brand{font-weight:700;color:var(--accent);letter-spacing:.3px;font-size:13px;text-transform:uppercase}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:22px 0}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.kpi .v{font-size:26px;font-weight:700}.kpi .l{color:var(--muted);font-size:13px}
-section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
-section h2{margin:0 0 12px;font-size:19px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid2{grid-template-columns:1fr}}
-table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
-th{color:var(--muted);font-weight:600}
-.review{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
-.review .meta{color:var(--muted);font-size:13px;margin-bottom:4px}
-.reply{margin-top:10px;background:#f1f4fd;border-left:3px solid var(--accent);padding:10px 12px;border-radius:6px}
-.reply b{display:block;font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
-.tag{display:inline-block;background:#eef1f5;border-radius:20px;padding:1px 9px;font-size:12px;margin-right:4px}
-.pos{color:var(--pos)}.neg{color:var(--neg)}footer{color:var(--muted);font-size:13px;margin-top:26px}
-.notice{color:var(--muted);font-size:13px}a{color:var(--accent)}
-</style></head><body><main><header><div class="brand">ReviewPulse</div>
-<h1>Turn hundreds of reviews into clear actions</h1>
-<p>AI analysis of customer reviews: sentiment, themes, unanswered complaints and suggested replies.</p></header>
-<section><h2>Published reports</h2><div class="kpis"><p class='notice'>No report published yet.</p></div></section>
-<section><h2>Run it yourself</h2><p>The full application (upload any review file, generate replies on demand)
-runs for free in Google Colab. See the project README on GitHub for the one-click link.</p></section>
-<footer>Built with Hugging Face Transformers, Gradio and Plotly.</footer></main></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ReviewPulse</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"><style>
+.rp{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;font-size:15px;line-height:1.5}
+.rp *{box-sizing:border-box}
+.rp h1,.rp h2,.rp h3{font-family:"Plus Jakarta Sans",Inter,sans-serif;margin:0;color:#101828}
+.rp h1{font-size:28px;font-weight:800;letter-spacing:-.4px;margin:2px 0 4px}
+.rp h2{font-size:18px;font-weight:700}.rp h3{font-size:16px;font-weight:700}
+.rp p{margin:0}.rp .muted{color:#5B6474}.rp .small{font-size:12px}
+.rp .eyebrow{font-size:12px;font-weight:700;color:#0077B3;text-transform:uppercase;letter-spacing:.5px}
+.rp.stack,.rp .stack{display:flex;flex-direction:column;gap:20px}
+.rp .card{background:#fff;border:1px solid #E4E7EC;border-radius:16px;padding:20px 22px}
+.rp .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.rp .kpi{background:#fff;border:1px solid #E4E7EC;border-radius:14px;padding:16px 18px}
+.rp .kpi .v{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:28px;font-weight:800;margin:6px 0 2px}
+.rp .kpi .v small{font-size:15px;color:#5B6474;font-weight:600}
+.rp .kpi.alert{background:#FFF7F2;border-color:#F8D3BF}.rp .kpi.alert .l,.rp .kpi.alert .s{color:#8A3A12}
+.rp .kpi.alert .v{color:#9A3412}
+.rp .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px}
+.rp .wide{grid-column:1/-1}
+.rp .diag{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:14px}
+.rp .diag>div{border-radius:12px;padding:14px 16px}
+.rp .diag ul,.rp .diag ol{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.rp .diag .t{font-weight:700;margin-bottom:8px}
+.rp .legend{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.rp .legend span{display:flex;align-items:center;gap:8px}
+.rp .sw{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.rp .donut{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:14px}
+.rp .hbar{display:grid;grid-template-columns:140px minmax(0,1fr) 44px;align-items:center;gap:10px;font-size:13px}
+.rp .track{height:12px;background:#F2F4F7;border-radius:6px;overflow:hidden;display:flex}
+.rp .rows{display:flex;flex-direction:column;gap:11px;margin-top:14px}
+.rp .review{border:1px solid #E4E7EC;border-radius:12px;padding:16px}
+.rp .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:#5B6474;margin-bottom:6px}
+.rp .stars{color:#E8590C;font-size:14px;letter-spacing:1px}.rp .stars i{color:#D0D5DD;font-style:normal}
+.rp .more summary{border:0;background:none;padding:4px 0 0;text-align:left;color:#0077B3;font-size:13px;margin-top:4px}
+.rp .tag{background:#F2F4F7;color:#344054;padding:2px 8px;border-radius:6px;font-size:12px}
+.rp .pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
+.rp .reply{background:#F0F9FE;border:1px solid #C6E9F8;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:14px;white-space:pre-line}
+.rp .reply b{display:block;font-size:12px;color:#005A87;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;white-space:normal}
+.rp details summary{cursor:pointer;font-weight:600;font-size:14px;padding:10px;border:1px dashed #D0D5DD;border-radius:10px;background:#FAFBFC;text-align:center;list-style:none;margin-top:12px}
+.rp details summary::-webkit-details-marker{display:none}
+.rp .notice{font-size:13px;color:#5B6474;background:#F6F7F9;border-radius:10px;padding:10px 12px}
+.rp .filters-on{font-size:13px;color:#005A87;background:#E5F5FC;border-radius:10px;padding:8px 12px}
+.rp svg text{font-family:Inter,system-ui,sans-serif}
+.rp .empty{padding:40px 20px;text-align:center;color:#5B6474}
+@media (max-width:640px){.rp .hbar{grid-template-columns:100px minmax(0,1fr) 40px}.rp h1{font-size:22px}}
+
+body{margin:0;background:#F6F7F9}
+.rp-page{max-width:1240px;margin:0 auto;padding:20px 16px 48px}
+.rp-top{background:#fff;border:1px solid #E4E7EC;border-radius:14px;padding:12px 18px;margin-bottom:20px;
+display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.rp table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+.rp th,.rp td{text-align:left;padding:7px 8px;border-bottom:1px solid #E4E7EC}.rp th{color:#5B6474;font-weight:600}
+.rp a{color:#0077B3}
+.rp .report-card{display:block;text-decoration:none;color:inherit}
+.rp .report-card:hover{border-color:#00A0E0}
+</style></head><body><div class="rp rp-page"><div class="rp-top"><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:#00A0E0;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2 12 7 12 10 5 14 19 17 12 22 12"></polyline></svg></div><span style="font-family:'Plus Jakarta Sans',Inter,sans-serif;font-weight:800;font-size:19px">ReviewPulse</span></div><span class="muted small"></span></div><div class="stack">
+<div><p class="eyebrow">Review intelligence</p><h1>Turn hundreds of reviews into clear actions</h1>
+<p class="muted">AI analysis of customer reviews: sentiment, themes, unanswered complaints and suggested replies.</p></div>
+<div class="card"><h2 style="margin-bottom:12px">Published reports</h2><div class="kpis"><p class='notice'>No report published yet.</p></div></div>
+<div class="card"><h2 style="margin-bottom:6px">Run it yourself</h2><p>The full application (upload any review file,
+filter the dashboard, draft replies on demand) runs for free in Google Colab. See the project README on GitHub
+for the one-click link.</p></div>
+<p class="muted small" style="text-align:center">Built with Hugging Face Transformers and Gradio.</p></div></div></body></html>

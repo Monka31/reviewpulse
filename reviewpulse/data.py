@@ -150,6 +150,13 @@ def load_reviews(source, max_reviews: int | None = None, place_name: str | None 
             (d.isoformat() if pd.notna(d) else None, float(r))
             for d, r in zip(df["date"], df["rating"]) if pd.notna(r)
         ],
+        # Star-only reviews (no text), kept for the "all reviews" table.
+        "rating_only_rows": [
+            {"date": d.isoformat() if pd.notna(d) else None,
+             "rating": float(r) if pd.notna(r) else None,
+             "answered": None if pd.isna(a) else bool(a)}
+            for d, r, a, t in zip(df["date"], df["rating"], df["answered"], df["text"]) if _is_blank(t)
+        ],
     }
 
     # Clean: drop empty / placeholder texts and exact duplicates.

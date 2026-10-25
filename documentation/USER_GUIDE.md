@@ -52,6 +52,7 @@ Right side, the **dashboard**:
 - **Insights**: sentiment donut, share of mentions by theme, rating and complaints over time, priority matrix (which themes to fix first), average stars by theme.
 - **What people talk about** and **Star ratings**, with the measured reliability of the AI on these reviews.
 - **Complaints without an answer**, the most recent first, with AI reply drafts.
+- **All reviews**: one table with every review of the file, written or star-only, with its date, stars, AI sentiment, themes and whether the owner answered.
 
 The **filters** above the dashboard (period, stars, theme) re-slice the analyzed reviews instantly, without running the models again. Example: 1 to 2 stars + "admissions" + 2025.
 
@@ -59,7 +60,7 @@ Below the dashboard:
 
 - **Reply assistant**: pick a negative review (unanswered ones first) and click **Draft a reply**. The draft also appears in the review's card. Always check and adapt it before posting.
 - **Model evaluation**: how often the AI agrees with the stars customers gave, compared with a naive baseline, plus a confusion matrix.
-- **All reviews and export**: every review with its predicted sentiment and themes (downloadable CSV), and **Build the HTML report** to publish the same dashboard on GitHub Pages.
+- **Search reviews and export**: the same full table with a search box, the analyzed reviews as a downloadable CSV, and **Build the HTML report** to publish the same dashboard on GitHub Pages.
 
 ## Analyzing your own reviews
 

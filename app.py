@@ -97,19 +97,12 @@ def reply_candidates(result, period=dash.ALL_TIME, stars=dash.ALL_STARS, theme=d
     return [(review_label(row), int(idx)) for idx, row in neg.iterrows()]
 
 
-def display_table(df: pd.DataFrame) -> pd.DataFrame:
-    out = pd.DataFrame({
-        "id": df.index,
-        "date": df["date"].dt.strftime("%Y-%m-%d") if df["date"].notna().any() else "",
-        "stars": df["rating"],
-        "AI sentiment": df["sentiment"],
-        "AI stars": df["pred_stars"],
-        "themes": df["themes"].map(", ".join),
-        "review": df["text"],
-    })
-    if df["answered"].notna().any():
-        out["answered"] = df["answered"].map({True: "yes", False: "no"}).fillna("")
-    return out
+def display_table(result) -> pd.DataFrame:
+    """Every review (written and star-only) for the searchable table."""
+    table = dash.all_reviews_frame(result)
+    table["Date"] = table["Date"].dt.strftime("%Y-%m-%d").fillna("")
+    table["Review"] = table["Review"].replace("", "(star-only rating, no text)")
+    return table
 
 
 # ---------------------------------------------------------------- callbacks
@@ -155,7 +148,7 @@ def run_analysis(file, sample, business_name, business_type, themes_text, langua
         gr.update(choices=choices, value=choices[0][1] if choices else None),
         evaluation_markdown(ev),
         charts.confusion_chart(ev["confusion_stars"], "Actual vs predicted stars") if ev else None,
-        display_table(result.reviews),
+        display_table(result),
         str(csv_path),
     )
 
@@ -269,8 +262,9 @@ def build_app() -> gr.Blocks:
                     with gr.Accordion("Model evaluation", open=False):
                         eval_md = gr.Markdown()
                         conf_plot = gr.Plot(show_label=False)
-                    with gr.Accordion("All reviews and export", open=False):
-                        all_table = gr.Dataframe(wrap=True, interactive=False, max_height=420)
+                    with gr.Accordion("Search reviews and export", open=False):
+                        all_table = gr.Dataframe(wrap=True, interactive=False, max_height=480, show_search="search",
+                                                 label="Every review, star-only ratings included")
                         csv_file = gr.File(label="Analyzed reviews (CSV)")
                         gr.Markdown("**Publish a report.** Builds a static HTML page with the same dashboard, "
                                     "ready for GitHub Pages (permanent link).")

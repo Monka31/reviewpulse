@@ -70,6 +70,9 @@ CSS = """
 .rp .notice{font-size:13px;color:#5B6474;background:#F6F7F9;border-radius:10px;padding:10px 12px}
 .rp .filters-on{font-size:13px;color:#005A87;background:#E5F5FC;border-radius:10px;padding:8px 12px}
 .rp svg text{font-family:Inter,system-ui,sans-serif}
+.rp .rp-table{border-collapse:collapse;width:100%;font-size:13px}
+.rp .rp-table th{position:sticky;top:0;background:#F6F7F9;text-align:left;font-weight:600;color:#5B6474;padding:8px 10px;border-bottom:1px solid #E4E7EC;z-index:1}
+.rp .rp-table td{padding:8px 10px;border-bottom:1px solid #F0F2F5;vertical-align:top}
 .rp .empty{padding:40px 20px;text-align:center;color:#5B6474}
 @media (max-width:640px){.rp .hbar{grid-template-columns:100px minmax(0,1fr) 40px}.rp h1{font-size:22px}}
 """
@@ -213,45 +216,110 @@ def trend_svg(points: pd.DataFrame, unit: str) -> str:
 
 
 def matrix_svg(table: pd.DataFrame) -> str:
-    """Priority matrix: x = mentions, y = net sentiment (-100..100)."""
-    t = table[table["mentions"] > 0]
+    """Priority matrix: x = mentions, y = net sentiment (-100..100).
+
+    Dots carry a number and the theme names are listed under the chart, so no text can
+    ever overlap, whatever the data. Dots that would sit on top of each other are spread.
+    """
+    t = table[table["mentions"] > 0].sort_values(["mentions", "net_score"], ascending=False).reset_index(drop=True)
     if t.empty:
         return '<p class="notice">No theme detected in this selection.</p>'
-    W, H, pad = 520, 300, 30
+    W, H, pad, R = 520, 300, 30, 13
     x_max = t["mentions"].max()
-    x_mid = (pad + W - pad) / 2
-    y_mid = H / 2
+    x_mid, y_mid = (pad + W - pad) / 2, H / 2
     parts = [
-        f'<rect x="{pad}" y="0" width="{x_mid - pad}" height="{y_mid}" fill="#F0F9FE" rx="10"></rect>',
-        f'<rect x="{x_mid}" y="0" width="{W - pad - x_mid}" height="{y_mid}" fill="#E9F6F1" rx="10"></rect>',
-        f'<rect x="{pad}" y="{y_mid}" width="{x_mid - pad}" height="{y_mid}" fill="#F6F7F9" rx="10"></rect>',
-        f'<rect x="{x_mid}" y="{y_mid}" width="{W - pad - x_mid}" height="{y_mid}" fill="#FFF1E9" rx="10"></rect>',
-        f'<text x="{pad + 10}" y="18" font-size="12" font-weight="600" fill="#005A87">Niche strengths</text>',
-        f'<text x="{W - pad - 10}" y="18" font-size="12" font-weight="600" fill="#17694F" text-anchor="end">Strengths to promote</text>',
+        f'<rect x="{pad}" y="0" width="{x_mid - pad - 2}" height="{y_mid - 2}" fill="#F0F9FE" rx="10"></rect>',
+        f'<rect x="{x_mid + 2}" y="0" width="{W - pad - x_mid - 2}" height="{y_mid - 2}" fill="#E9F6F1" rx="10"></rect>',
+        f'<rect x="{pad}" y="{y_mid + 2}" width="{x_mid - pad - 2}" height="{y_mid - 2}" fill="#F6F7F9" rx="10"></rect>',
+        f'<rect x="{x_mid + 2}" y="{y_mid + 2}" width="{W - pad - x_mid - 2}" height="{y_mid - 2}" fill="#FFF1E9" rx="10"></rect>',
+        f'<text x="{pad + 10}" y="20" font-size="12" font-weight="600" fill="#005A87">Niche strengths</text>',
+        f'<text x="{W - pad - 10}" y="20" font-size="12" font-weight="600" fill="#17694F" text-anchor="end">Strengths to promote</text>',
         f'<text x="{pad + 10}" y="{H - 10}" font-size="12" font-weight="600" fill="#5B6474">Watch</text>',
         f'<text x="{W - pad - 10}" y="{H - 10}" font-size="13" font-weight="700" fill="#9A3412" text-anchor="end">Fix first</text>',
     ]
-    placed = []  # (x, label_y) of labels already drawn, to avoid overlaps
-    for r in t.sort_values("net_score", ascending=False).itertuples():
-        x = pad + 18 + (W - 2 * pad - 36) * (r.mentions / x_max)
-        y = y_mid - (r.net_score / 100) * (y_mid - 26)
+    # Dot positions inside a margin that keeps them clear of the quadrant titles.
+    placed = []
+    for r in t.itertuples():
+        x = pad + 2 * R + (W - 2 * pad - 4 * R) * (r.mentions / x_max)
+        y = y_mid - (r.net_score / 100) * (y_mid - 2.5 * R - 18)
+        # Spread dots that would overlap: try small moves around the ideal position.
+        for k in range(40):
+            if all((x - px) ** 2 + (y - py) ** 2 >= (2 * R + 3) ** 2 for px, py in placed):
+                break
+            angle = k * 2.4
+            dist = (2 * R + 3) * (1 + k // 6) * 0.6
+            x = min(W - pad - R, max(pad + R, x + dist * math.cos(angle)))
+            y = min(H - R - 18, max(R + 26, y + dist * math.sin(angle)))
+        placed.append((x, y))
+    legend = []
+    for (x, y), r in zip(placed, t.itertuples()):
         color = POS if r.net_score > 20 else NEG if r.net_score < -20 else "#98A2B3"
-        anchor = "end" if x > W - 150 else "start"
-        dx = -12 if anchor == "end" else 12
-        ly = y + 4
-        while any(abs(px - x) < 140 and abs(py - ly) < 15 for px, py in placed):
-            ly += 15
-        placed.append((x, ly))
-        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{6 + 6 * r.mentions / x_max:.1f}" fill="{color}" '
-                     f'fill-opacity="0.85" stroke="#fff" stroke-width="1.5"></circle>'
-                     f'<text x="{x + dx:.1f}" y="{ly:.1f}" font-size="13" font-weight="600" fill="#101828" '
-                     f'text-anchor="{anchor}">{esc(r.theme)}</text>')
-    aria = "; ".join(f"{r.theme}: {r.mentions} mentions, net {r.net_score:+d}" for r in t.itertuples())
+        num = r.Index + 1
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{R}" fill="{color}" stroke="#fff" stroke-width="2"></circle>'
+                     f'<text x="{x:.1f}" y="{y + 4.5:.1f}" font-size="12" font-weight="700" fill="#fff" '
+                     f'text-anchor="middle">{num}</text>')
+        legend.append(f'<span style="display:flex;align-items:center;gap:8px;min-width:0">'
+                      f'<i style="flex:none;width:20px;height:20px;border-radius:50%;background:{color};color:#fff;'
+                      f'font-style:normal;font-size:11px;font-weight:700;display:flex;align-items:center;'
+                      f'justify-content:center">{num}</i><span>{esc(r.theme)} '
+                      f'<span class="muted">· {r.mentions} · net {r.net_score:+d}</span></span></span>')
+    aria = "; ".join(f"{r.Index + 1} {r.theme}: {r.mentions} mentions, net {r.net_score:+d}" for r in t.itertuples())
     return (f'<svg viewBox="0 0 {W} {H}" width="100%" style="max-height:320px" role="img" '
             f'aria-label="Priority matrix: {esc(aria)}">{"".join(parts)}</svg>'
             '<div class="small muted" style="display:flex;justify-content:space-between;margin-top:6px">'
             '<span>Rarely mentioned</span><span>Often mentioned →</span></div>'
-            '<p class="small muted" style="margin-top:4px">Vertical axis: net sentiment (share of positive minus negative reviews), positive at the top.</p>')
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 16px;'
+            f'font-size:13px;margin-top:12px">{"".join(legend)}</div>'
+            '<p class="small muted" style="margin-top:10px">Vertical axis: net sentiment (share of positive minus '
+            'negative reviews), positive at the top. In the list: mentions · net score.</p>')
+
+
+def all_reviews_frame(result: AnalysisResult, period=ALL_TIME, stars=ALL_STARS, theme=ALL_THEMES) -> pd.DataFrame:
+    """Every review of the file in one table: written ones (with the AI's reading) and star-only ones."""
+    written = apply_filters(result, period, stars, theme)
+    rows = [{
+        "#": idx,
+        "Date": r["date"],
+        "Stars": r["rating"],
+        "Review": r["text"],
+        "AI sentiment": r["sentiment"],
+        "Themes": ", ".join(r["themes"]),
+        "Owner reply": "" if pd.isna(r["answered"]) else ("Answered" if r["answered"] else "Not answered"),
+    } for idx, r in written.iterrows()]
+    if theme in (None, ALL_THEMES):   # star-only reviews have no theme
+        lo, hi = STAR_FILTERS.get(stars or ALL_STARS, (1, 5))
+        extra = pd.DataFrame(result.reviews.attrs.get("rating_only_rows", []), columns=["date", "rating", "answered"])
+        if not extra.empty:
+            extra["date"] = pd.to_datetime(extra["date"], errors="coerce")
+            keep = _period_mask(extra["date"], period) & extra["rating"].between(lo, hi)
+            for r in extra[keep].itertuples():
+                rows.append({"#": "", "Date": r.date, "Stars": r.rating, "Review": "",
+                             "AI sentiment": "", "Themes": "",
+                             "Owner reply": "" if r.answered is None or pd.isna(r.answered)
+                             else ("Answered" if r.answered else "Not answered")})
+    out = pd.DataFrame(rows, columns=["#", "Date", "Stars", "Review", "AI sentiment", "Themes", "Owner reply"])
+    return out.sort_values("Date", ascending=False, na_position="last").reset_index(drop=True)
+
+
+def all_reviews_html(table: pd.DataFrame) -> str:
+    if table.empty:
+        return '<p class="notice">No review in this selection.</p>'
+    sent_color = {"positive": POS, "negative": "#C2410C", "neutral": "#5B6474"}
+    body = []
+    for r in table.itertuples(index=False):
+        stars = "" if pd.isna(r.Stars) else f'{int(r.Stars)}★'
+        date = "" if pd.isna(r.Date) else f"{r.Date:%Y-%m-%d}"
+        review = (esc(r.Review) if r.Review else '<span class="muted">Star-only rating, no text</span>')
+        sent = (f'<span style="color:{sent_color.get(r[4], "#5B6474")};font-weight:600">{esc(r[4])}</span>' if r[4] else "")
+        reply = r[6]
+        reply_html = (f'<span class="pill" style="background:#E9F6F1;color:#17694F">{reply}</span>' if reply == "Answered" else
+                      f'<span class="pill" style="background:#FFEDE3;color:#9A3412">{reply}</span>' if reply else "")
+        body.append(f"<tr><td style='white-space:nowrap'>{date}</td><td>{stars}</td>"
+                    f"<td style='min-width:260px;white-space:pre-line'>{review}</td><td>{sent}</td>"
+                    f"<td class='small'>{esc(r.Themes)}</td><td style='white-space:nowrap'>{reply_html}</td></tr>")
+    return ('<div style="max-height:520px;overflow:auto;border:1px solid #E4E7EC;border-radius:12px">'
+            '<table class="rp-table"><thead><tr><th>Date</th><th>Stars</th><th>Review</th><th>AI sentiment</th>'
+            f'<th>Themes</th><th>Owner reply</th></tr></thead><tbody>{"".join(body)}</tbody></table></div>')
 
 
 # ------------------------------------------------------------------ sections
@@ -474,6 +542,14 @@ def render_dashboard(result: AnalysisResult, period=ALL_TIME, stars=ALL_STARS, t
     complaints = (f'<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><h2>{title}</h2>'
                   f'<span class="pill" style="color:#9A3412;background:#FFEDE3">{len(unanswered)}</span></div>{caution}{complaints_body}</div>')
 
+    table_all = all_reviews_frame(result, period, stars, theme)
+    n_text = int((table_all["Review"] != "").sum())
+    all_reviews = (f'<div class="card"><details open><summary style="all:unset;cursor:pointer;display:flex;'
+                   f'align-items:center;gap:10px;margin-bottom:12px"><h2>All reviews</h2><span class="pill" '
+                   f'style="color:#005A87;background:#E5F5FC">{len(table_all)}</span><span class="muted small">'
+                   f'{n_text} with text · {len(table_all) - n_text} star-only · newest first · click to fold</span>'
+                   f'</summary>{all_reviews_html(table_all)}</details></div>')
+
     return f"""<div class="rp stack">
 {header}{filter_note}
 <div class="kpis">{''.join(kpis)}</div>
@@ -482,5 +558,6 @@ def render_dashboard(result: AnalysisResult, period=ALL_TIME, stars=ALL_STARS, t
 <div class="grid">{sentiment_card}{theme_card}{trend_card}{matrix_card}{stars_theme_card}</div>
 <div style="display:flex;flex-wrap:wrap;gap:20px">{themes_card}{stars_card}</div>
 {complaints}
+{all_reviews}
 <p class="muted small" style="text-align:center">Reviewer identities are never stored. AI outputs are drafts to be checked by a human.</p>
 </div>"""

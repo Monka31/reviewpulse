@@ -107,3 +107,16 @@ def test_dashboard_filters_and_empty_state():
     assert "No review matches" in dash.render_dashboard(result, "1999", dash.ALL_STARS, dash.ALL_THEMES) \
         or dash.period_choices(result)  # 1999 is never offered; filter must not crash
     assert "Filtered view" in dash.render_dashboard(result, stars="4 to 5 stars")
+
+
+def test_all_reviews_table_includes_star_only_ratings():
+    from reviewpulse import dashboard as dash
+    csv = ("name,review_text,review_rating,review_datetime_utc,owner_answer\n"
+           "X,Great place,5,10/25/2026 14:31:40,Thanks!\n"
+           "X,,4,10/21/2026 14:44:19,\n"
+           "X,Rude staff,1,10/20/2026 10:00:00,\n")
+    result = rp.run_pipeline(io.BytesIO(csv.encode()), summary=False, backend=MockBackend())
+    table = dash.all_reviews_frame(result)
+    assert len(table) == 3 and (table["Review"] == "").sum() == 1
+    assert set(table["Owner reply"]) == {"Answered", "Not answered"}
+    assert "Star-only rating" in dash.render_dashboard(result)

@@ -1,0 +1,15 @@
+# Core AI stack (PyTorch is preinstalled on Google Colab; for a local install see the user guide)
+transformers>=4.44,<5
+accelerate>=0.33
+sentencepiece>=0.2      # tokenizer of the mDeBERTa zero-shot model
+protobuf>=4
+
+# App, data and charts
+gradio>=6.0,<7
+pandas>=2.1
+plotly>=5.20
+markdown>=3.5
+openpyxl>=3.1           # Excel files
+
+# Optional: only to collect new reviews (scripts/collect_reviews_outscraper.py)
+# outscraper>=5.0

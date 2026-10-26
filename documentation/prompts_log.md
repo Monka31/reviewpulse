@@ -1,64 +1,89 @@
 # AI tools and prompts log
 
-The assignment asks to report where and how AI tools were used. This file lists (1) the AI assistants used to design and build the project, with the prompts we gave them, and (2) the prompts the application itself sends to its language model.
+The assignment asks us to show where and how we used AI tools, with the prompts. This log covers the AI assistants used to design and build ReviewPulse, then the prompts the application itself sends to its language model.
 
-## 1. AI assistants used during the project
+## 1. AI assistants used
 
-| Tool | Used for |
-|---|---|
-| Claude (Anthropic), claude.ai | Brainstorming project ideas, choosing the data source, architecture choices, writing the code, documentation, tests and video script |
-| _add other tools if used (ChatGPT, GitHub Copilot...)_ | |
+We used Claude (Anthropic, on claude.ai) throughout the project: to choose the idea and the data source, to compare architectures, to write and debug the code, to design the interface and to draft the documentation and the video script. [Add any other tool the team used, for example ChatGPT or GitHub Copilot, with what it was used for.]
 
-Prompts were written in French; the English translation is given in brackets. Answers were reviewed, tested and adapted by the team.
+The prompts were written in French. Each one is quoted in French, followed by an English translation and the outcome. Every output was read, tested and corrected by the team before being kept. When code failed in Colab, we pasted the error message back and asked for a fix, so several prompts below are error reports.
 
-### Ideation
+## 2. Prompts used to build the project
 
-1. Uploaded the assignment PDF, then: "J'ai ce projet : [assignment instructions]" (I have this project: [instructions]).
-   Outcome: analysis of the grading scheme and three first ideas (customer-success copilot, sales objection coach, review analyzer).
-2. "Quel projet pourrait être intéressant à faire, facile, rapide, utile, et qui utiliserait les bibliothèques présentées ?" (Which project would be interesting, easy, fast, useful, and use the presented libraries?)
-   Outcome: recommendation of a review analyzer built from pre-trained Hugging Face models.
-3. "Peux-tu me faire plus de propositions de projet stp" (Can you give me more project proposals?)
-   Outcome: 11 ideas across marketing, sales, documents and computer vision.
-4. "Donne une idée simple qui réponde aux critères, il faut que je puisse le faire rapidement" (Give one simple idea that meets the criteria, I must be able to build it quickly)
-   Outcome: final choice of the review analyzer, with a one-day plan.
+### Understanding the assignment and organizing the team
 
-### Data collection
+Prompt 1. We uploaded the assignment PDF with "J'ai ce projet : [instructions de l'enseignant]" (I have this project: [teacher's instructions]). The assistant summarized the grading scheme, pointed out that reproducibility, duration compliance and documentation were points we could secure early, and suggested three first ideas: a customer-success copilot, a sales objection coach and a review analyzer.
 
-5. "Puis-je de mon côté récupérer les infos de n'importe quel magasin ou commerce pour ma démo ?" (Can I get the data of any store or business for my demo?)
-   Outcome: comparison of manual copy, Google Places API (5 reviews max), open datasets and scraping, with legal and GDPR caveats.
-6. "Montre-moi comment avoir un fichier CSV avec tous les avis d'une entreprise" (Show me how to get a CSV with all the reviews of a business)
-   Outcome: extraction script for the Yelp Open Dataset (not used in the end: no French businesses).
-7. "Je veux le faire avec des commerces français [...] avec tous les avis qu'il y a sur l'ESSEC" (I want French businesses [...] all the reviews about ESSEC)
-   Outcome: sources of ESSEC reviews and a manual collection method.
-8. "Est-il possible de faire une extension Chrome qui, en fonction de la page d'avis où l'on est, analyse tout seul ?" (Could a Chrome extension analyze the review page you are on?)
-   Outcome: feasible but judged too long and harder to reproduce; dropped.
-9. "Peut-on le faire avec Apify ?" then "Ok faisons avec Outscraper : [example of Outscraper JSON output]" (Can we do it with Apify? / Let's use Outscraper: [sample output])
-   Outcome: Outscraper chosen; script `scripts/collect_reviews_outscraper.py` that keeps only text, stars, date and owner reply (reviewer identities removed).
+Prompts 2 and 3. "Je vais créer un groupe avec tous les membres, fais-moi le message de bienvenue, fais tout en anglais en demandant si tout le monde est francophone. Demande comment ils veulent se répartir la tâche" (I am creating a group chat with all members, write the welcome message in English, ask whether everyone speaks French and how they want to split the work), then "S'ils ont déjà des idées etc" (and whether they already have ideas). The assistant drafted the welcome message with a proposed split into four roles.
 
-### Architecture
+### Choosing the idea
 
-10. "On fait quelque chose en local ou quelque chose en ligne ?" (Should we build it locally or online?)
-    Outcome: Google Colab with a free GPU as the main environment.
-11. "C'est un peu nul que ce soit périssable, ne peut-on pas faire quelque chose sur Supabase, Vercel ou autre pour avoir un lien permanent ?" (The temporary link is a pity, could we use Supabase, Vercel or similar for a permanent link?)
-    Outcome: comparison of Vercel + Supabase and Hugging Face Spaces.
-12. "Si on part sur Google Colab, combien de temps prendrait une analyse ?" (With Google Colab, how long would an analysis take?)
-    Outcome: time estimates per step and ideas to speed things up (replies on demand).
-13. "Donc concrètement, avec du recul et de la critique, que devons-nous faire ?" (So, stepping back critically, what should we do?)
-    Outcome: Colab + Gradio as the product, static HTML reports on GitHub Pages for a permanent link without extra infrastructure, an evaluation section against customer stars, and a 3B LLM for better French.
+Prompt 4. "Quel projet pourrait être intéressant à faire, facile, rapide, utile, et qui utiliserait les bibliothèques présentées ?" (Which project would be interesting, easy, fast, useful, and use the presented libraries?) The assistant recommended a review analyzer built from pre-trained Hugging Face models, with a demo outline.
 
-### Build
+Prompt 5. "Peux-tu me faire plus de propositions de projet stp" (Can you give me more project ideas?) It proposed eleven ideas across marketing, sales, document processing and computer vision.
 
-14. "Fais l'appli complète, fais tout ce que tu peux faire, pense à tout, mets-toi à la place d'un développeur senior qui doit rendre la chose simple et facilement reproductible. Ensuite dis-moi ce qu'il me manque à faire." (Build the complete app, do everything you can, think of everything, act as a senior developer who must keep it simple and easily reproducible. Then tell me what is left for me to do.)
-    Outcome: this repository (package, Gradio app, notebook, HTML reports, tests, documentation). The code was checked with automated tests and an end-to-end run before delivery.
+Prompt 6. "Donne une idée simple qui réponde aux critères, il faut que je puisse le faire rapidement" (Give one simple idea that meets the criteria, I must be able to build it quickly). It confirmed the review analyzer and gave a one-day build plan.
 
-_Add here the prompts used later (bug fixes, video script edits, slides...)._
+### Finding the data
 
-## 2. Prompts used inside the application
+Prompt 7. "Puis-je de mon côté récupérer les infos de n'importe quel magasin ou commerce pour ma démo ?" (Can I get the data of any store or business for my demo?) The assistant compared copying reviews by hand, the Google Places API (five reviews per place), open datasets and scraping, with the legal and privacy caveats.
 
-ReviewPulse sends two kinds of prompts to `Qwen/Qwen2.5-3B-Instruct`. The exact text lives in `reviewpulse/llm.py`; summarized here:
+Prompt 8. "Montre-moi comment avoir un fichier CSV avec tous les avis d'une entreprise, commerce, restaurant peu importe" (Show me how to get a CSV with all the reviews of any business). It wrote a script extracting one business from the Yelp Open Dataset. We did not use it, because Yelp has almost no French businesses.
 
-**Executive summary.** System: "You are a customer-experience consultant. You analyze online reviews for a business owner and give short, concrete, evidence-based advice. Never invent facts that are not supported by the data or the review excerpts you are given." The user message contains the business name and type, the sentiment split, average rating and reply rate, the per-theme counts, 8 negative and 5 positive review excerpts, and asks for three Markdown sections (strengths, areas for improvement, 3 priority actions) in under 220 words.
+Prompt 9. "Je veux le faire avec des commerces français, par exemple, super exemple, je veux le faire avec tous les avis qu'il y a sur l'ESSEC" (I want French businesses, for example all the reviews about ESSEC). It listed where ESSEC reviews can be found and how to collect them.
 
-**Reply draft.** System: "You write public replies to customer reviews on behalf of a business. Replies are warm, professional, specific to what the customer wrote, and never defensive." The user message contains the review and its stars, and these rules: same language as the review, 60 to 110 words, thank the customer and acknowledge the specific issue, no blame, no promised refunds, no invented facts, invite direct contact, sign as the business team.
+Prompt 10. "Est-il possible de faire une extension Chrome qui, en fonction de la page d'avis où l'on est, analyse tout seul ?" (Could a Chrome extension analyze the review page you are on?) It explained that it was feasible but longer to build and harder for graders to reproduce. We dropped the idea: "ok on oublie, faisons quelque chose de simple où l'on fournit un fichier CSV" (let's forget it and keep it simple, with a CSV file).
 
-Design choices: the model receives computed statistics and real excerpts (grounding) rather than being asked to read hundreds of reviews; output formats and length limits are explicit; generation is deterministic (`do_sample=False`) so results are reproducible.
+Prompts 11 and 12. "Peut-on le faire avec Apify ?" (Can we do it with Apify?), with the documentation of an Apify actor, then "ok faisons avec Outscraper : [exemple de sortie JSON]" (let's use Outscraper: [sample JSON output]). The assistant wrote the collection script that keeps only the text, stars, date and owner reply and drops every reviewer identity. It later became `scripts/collect_reviews_outscraper.py`.
+
+### Explaining the project to the group
+
+Prompts 13 to 15. "Peux-tu me faire le texte d'explication pour mon groupe pour leur expliquer le projet, l'intérêt etc, que pendant la démo on peut faire un test avec l'ESSEC, un test avec un restaurant afin de montrer les axes d'amélioration, les messages non répondus" (write a message explaining the project and its value to the group, with a demo testing ESSEC and a restaurant to show improvement areas and unanswered reviews), then a French version, then "Fais un message plus court sans emoji, qui ne fait pas IA" (make it shorter, without emojis, so it does not sound AI-written).
+
+### Architecture decisions
+
+Prompt 16. "Partons sur ce projet, que devons-nous faire ? La structure ? Quoi utiliser ? Tout est gratuit ? Dépôt GitHub ?" (What do we need to do, what structure, which tools, is everything free, GitHub repository?) The assistant proposed the repository structure, the free stack and a planning.
+
+Prompts 17 to 19. "On fait quelque chose en local ou en ligne ?" (local or online?), "Comment se compose l'appli ? Comment est-elle hébergée, comment elle tourne ?" (what are the parts of the app, how is it hosted and run?) and "C'est un peu nul que ce soit périssable, ne peut-on pas faire quelque chose sur Supabase, Vercel ou autre pour avoir un lien permanent ?" (the temporary link is a pity, could we use Supabase or Vercel for a permanent link?). The assistant explained the Colab and Gradio setup, then compared Vercel with Supabase and Hugging Face Spaces.
+
+Prompts 20 and 21. "Si on part sur Google Colab, combien de temps prendrait une analyse ?" (how long would an analysis take on Colab?) and "Donc concrètement, avec du recul et de la critique, que devons-nous faire ?" (stepping back critically, what should we do?). The assistant advised against the extra infrastructure, recommended Colab with Gradio for the application and GitHub Pages for permanent static reports, an evaluation against customer stars, and a 3-billion-parameter language model for better French. We followed this advice.
+
+### Building the application
+
+Prompt 22. "Fais l'appli complète, fais tout ce que tu peux faire, pense à tout, mets-toi à la place d'un développeur senior qui doit rendre la chose simple et facilement reproductible. Ensuite dis-moi ce qu'il me manque à faire." (Build the complete app, think of everything, act as a senior developer who must keep it simple and easily reproducible, then tell me what is left for me to do.) The assistant wrote the package, the Gradio application, the notebook, the report export, the tests and the first documentation, checked them with automated tests and an end-to-end run using tiny local models, and listed the remaining tasks.
+
+Prompts 23 to 25. "Fais-moi la description du repo GitHub et tous les paramètres à activer ou non" (write the repository description and tell me which settings to enable), "Comment le déployer et utiliser l'outil ? Je ne vois pas Website" (how do I deploy and use it? I cannot find the Website field) and "Quoi mettre ici" (what goes here?) with a screenshot of the repository settings.
+
+Prompt 26. "Voici un exemple de template avis (c'est celui de l'ESSEC), l'app est optimisée pour ?" (here is a review export, the ESSEC one: is the app optimized for it?), with the Outscraper Excel file. Testing it revealed three problems: the app read the place-level average (4.4) instead of each review's stars, kept HTML tags in the texts, and ignored star-only ratings. The assistant fixed all three, added a regression test and adjusted the school themes to what the reviews discuss (admissions, staff and welcome).
+
+Prompts 27 to 29. Questions on how to use the app ("Comment fonctionne l'appli ? Je dois déposer les avis sur GitHub ? Je ne peux pas poser le Excel sur l'appli directement ?", how does it work, do I have to put the reviews on GitHub, can't I drop the Excel file directly?) and error reports from Colab: "Could not find ReviewPulse.ipynb", then "FileNotFoundError: data/reviews_ESSEC_Cergy.csv". The causes were an upload that had put the files in a subfolder, then a stale copy of the repository in Colab. The notebook now pulls the latest version on every run.
+
+### Redesigning the interface
+
+Prompt 30. "Je n'aime pas du tout l'interface de l'appli, peux-tu m'aider à changer le template ? Cela marche en HTML ? Comment ? Ne fais pas de modif avant ma validation" (I do not like the interface, can you change it, does it work with HTML, do not change anything before I approve). The assistant proposed three options and we chose the second: Gradio controls with an HTML dashboard ("ok partons sur l'option B si elle est facile de mise en place").
+
+Prompts 31 to 33. The assistant drew a mockup of the dashboard for validation. We asked for "le bleu clair ESSEC" (ESSEC light blue), then "Peut-on ajouter des graphes ? J'aimerais pouvoir voir des camemberts etc ou d'autres graphes en fonction d'infos ou données particulières. Interface en anglais" (can we add charts, such as pie charts, depending on specific information? Interface in English). It added the five charts of the Insights section and the period, stars and theme filters. We approved with "go".
+
+Prompts 34 to 36. Error reports after the redesign: "AttributeError: module 'reviewpulse' has no attribute 'run_pipeline'", twice, then an assertion error. The first cause was a name clash between the folder Colab cloned and the Python package, fixed by cloning into `reviewpulse_app`. The second was an incomplete upload to GitHub.
+
+Prompt 37. "Penses-tu cela possible de faire en sorte qu'aucun texte ne se superpose ? Est-il également possible d'ajouter un tableau avec tous les avis ? Répondus ou pas, avec ou sans texte, tout dans un tableau" (can you make sure no text overlaps, with a screenshot of the priority matrix, and add a table with every review, answered or not, with or without text?). The matrix now uses numbered dots with a list under the chart, and the dashboard ends with a table of every review.
+
+### Documentation
+
+Prompt 38. "Peux-tu stp me faire toute la doc explicative, tout tout tout, répondant au cahier des charges" (write all the documentation, everything, matching the assignment), with a request to make the text sound human rather than AI-generated. The assistant wrote this log, the README, the user guide, the technical report, the data notes and the updated video script.
+
+### Automated demo video
+
+Prompts 39 to 43. "Penses-tu qu'il serait possible de faire une démo automatisée avec une voix off qui explique tout ?" (could the demo be automated, with a voice-over explaining everything?), "Peut-on le faire uniquement avec le fichier ESSEC ? Cela suffit-il ?" (can we do it with the ESSEC file only, is that enough?), "Comment automatiser la démo ?" (how would we automate it?), "Je veux tout automatiser à 100 %, est-ce possible ?" (I want it 100% automated, is that possible?) and "Je veux le faire uniquement avec les données de l'ESSEC, automatise tout, je veux que la démo puisse montrer le GitHub, le Google Colab, lance l'analyse, lance l'outil, défile tout, explique tout" (only the ESSEC data, automate everything, show GitHub and Colab, run the analysis, open the tool, scroll through everything and explain it all). The assistant compared a fully automated video with a recording narrated by the team, pointed out that a synthetic voice could cost points on delivery, and built `reviewpulse/demo_video.py` and section 8 of the notebook. The narration is written from the analysis results, so the video quotes only figures the application computed.
+
+[Add the prompts used after this point.]
+
+## 3. Prompts used inside the application
+
+ReviewPulse sends two kinds of prompts to `Qwen/Qwen2.5-3B-Instruct`. Their exact text is in `reviewpulse/llm.py`.
+
+The diagnosis prompt uses this system message: "You are a customer-experience consultant. You analyze online reviews for a business owner and give short, concrete, evidence-based advice. Never invent facts that are not supported by the data or the review excerpts you are given." The user message gives the business name and type, the number of reviews, the sentiment split, the average rating and reply rate, the mentions and net score of each theme, eight negative and five positive review excerpts, and asks for three Markdown sections (strengths, areas for improvement, three priority actions) in under 220 words and in the chosen language.
+
+The reply prompt uses this system message: "You write public replies to customer reviews on behalf of a business. Replies are warm, professional, specific to what the customer wrote, and never defensive." The user message gives the business, the review and its stars, with these rules: write in the same language as the review, 60 to 110 words, thank the customer and acknowledge the specific issue, say what will be done, never blame the customer, never promise refunds or discounts, never invent facts, invite direct contact and sign as the business team.
+
+We wrote the prompts this way so the model works from computed figures and real excerpts instead of guessing, follows a fixed output format that the dashboard can display, and stays within limits a business could accept. Generation is deterministic, so the same data gives the same text.

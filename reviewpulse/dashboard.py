@@ -348,11 +348,10 @@ def _trend_points(result: AnalysisResult, df: pd.DataFrame, period: str, use_all
     return g, unit, source + note
 
 
-def _diagnosis_html(summary: str | None) -> str:
-    if not summary:
-        return '<p class="notice">AI summary not generated for this analysis.</p>'
+def parse_diagnosis(summary: str | None) -> dict:
+    """Split the LLM summary into {"strengths": [...], "improve": [...], "actions": [...]}."""
     sections, current = {}, None
-    for line in summary.splitlines():
+    for line in (summary or "").splitlines():
         s = line.strip()
         if s.startswith("#"):
             low = s.lower()
@@ -363,6 +362,13 @@ def _diagnosis_html(summary: str | None) -> str:
                 sections[current] = []
         elif current and re.match(r"^([-*•]|\d+[.)])\s+", s):
             sections[current].append(re.sub(r"^([-*•]|\d+[.)])\s+", "", s))
+    return sections
+
+
+def _diagnosis_html(summary: str | None) -> str:
+    if not summary:
+        return '<p class="notice">AI summary not generated for this analysis.</p>'
+    sections = parse_diagnosis(summary)
     if len(sections) < 2:
         return f'<div style="margin-top:12px;font-size:14px">{md.markdown(summary)}</div>'
 

@@ -4,8 +4,6 @@
 
 `data/reviews_ESSEC_Cergy.csv` holds 250 Google Maps reviews of the ESSEC Business School Cergy-Pontoise campus, collected with Outscraper on October 25, 2026. They run from November 2020 to October 2026. 76 reviews have a text and 174 are star-only ratings. The Google Maps listing showed 382 reviews in total at the time of collection, so the file covers about two thirds of them. The export contained no reply from the school to any review.
 
-`data/reviews_<restaurant>.csv` [to add: the restaurant used in the second demo, collected the same way.]
-
 `data/demo_restaurant_synthetic.csv` holds 30 reviews of a fictional restaurant, "Demo Bistro", written by the team to test the application. They are synthetic, labeled as such in the file, and never presented as real data.
 
 ## Format

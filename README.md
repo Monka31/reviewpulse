@@ -14,7 +14,7 @@ The application runs in Google Colab on a free GPU, with three open-source model
 
 A restaurant, a shop, a hotel or a school can collect several hundred reviews, and new ones arrive every week. Owners rarely have time to read them, so they look at the star average and move on. Recurring problems go unnoticed, and complaints stay unanswered even though every future customer can read them on Google Maps.
 
-The ESSEC Cergy campus, one of our two demo cases, shows how misleading the average can be. Its public rating is 4.28 out of 5 over 250 ratings. When we keep only the 76 people who wrote a text, the average drops to 3.66, and 22 of those 76 written reviews give a single star. The file contains no reply from the school to any of them. The yearly trend also dipped in 2023 (3.9 out of 5, with 28% of ratings at one or two stars) before recovering in 2026.
+The ESSEC Cergy campus, our demo case, shows how misleading the average can be. Google Maps showed 382 reviews for the campus when we collected the data, and Outscraper returned 250 of them. Their average is 4.28 out of 5. When we keep only the 76 people who wrote a text, the average drops to 3.66, and 22 of those 76 written reviews give a single star. The file contains no reply from the school to any of them. The yearly trend also dipped in 2023 (3.9 out of 5, with 28% of ratings at one or two stars) before recovering in 2026.
 
 ## What the application does
 
@@ -97,4 +97,4 @@ Packages: [Transformers](https://github.com/huggingface/transformers), [Accelera
 
 Data: Google Maps reviews collected with [Outscraper](https://outscraper.com/), see [DATA.md](documentation/DATA.md).
 
-Team: [names of the team members]. Course: Advanced AI Algorithms, ESSEC Business School, Advanced Master in Marketing Management & Digital, 2026. License: MIT.
+Team: Brice Bayemi, Carla Sandou, Louise Prouve, Marco Faucher and Maxime Facchin. Course: Advanced AI Algorithms, ESSEC Business School, Advanced Master in Marketing Management & Digital, 2026. License: MIT.

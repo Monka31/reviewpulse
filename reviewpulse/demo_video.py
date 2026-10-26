@@ -45,6 +45,10 @@ FPS = 15                                         # frame rate of animations (scr
 SAMPLE_RATE = 24000
 TARGET_SECONDS = (282, 300)                      # aim for 4:42 to 5:00 (allowed 4:30 to 5:30)
 
+# Number of reviews Google Maps displayed when each dataset was collected. Outscraper does not always
+# return every review, and the narration says so honestly (ESSEC: 250 returned out of 382 shown).
+ONLINE_TOTALS = {"reviews_ESSEC_Cergy.csv": 382}
+
 # Words the speech engine tends to mispronounce (used for the voice only, not the subtitles)
 PRONUNCIATION = {
     "ESSEC": "Essec", "mDeBERTa": "M DeBERTa", "Qwen": "Kwen", "README": "read me", "GPU": "G P U",
@@ -85,6 +89,7 @@ def demo_facts(result) -> dict:
         "pct_neg": _pct(s["pct_negative"]),
         "unanswered": s.get("n_unanswered_negative"),
         "no_reply_at_all": bool(s.get("owner_answers_all_empty")),
+        "n_online": df.attrs.get("reviews_online"),
     }
 
     # Trend per year, star-only ratings included
@@ -123,110 +128,114 @@ def demo_facts(result) -> dict:
 
 def build_script(f: dict) -> list[dict]:
     """The narration, one entry per shot. Texts are filled with the real figures."""
-    name = f["name"]
     seg = []
 
     def add(key, text):
         seg.append({"key": key, "text": " ".join(text.split())})
 
-    add("intro", "Every day, people leave reviews on Google. For a business, they say exactly what to fix. "
-                 "But nobody has time to read hundreds of them. This is ReviewPulse, an AI assistant that "
-                 "turns all the reviews of a business into a dashboard and clear actions, in about two minutes.")
+    add("intro", "Every day, people leave reviews on Google, and they say exactly what a business should fix. "
+                 "But nobody has time to read hundreds of them. This is ReviewPulse, an AI assistant that turns all "
+                 "the reviews of a business into a dashboard and clear actions, in about two minutes.")
 
-    problem = (f"Take a place everyone at ESSEC knows: the Cergy campus. On Google, it has {f['avg']} stars out of five, "
-               f"over {f['n_total']} ratings. That looks great. ")
+    problem = "Take a place everyone here knows: the ESSEC campus in Cergy. "
+    if f.get("n_online"):
+        problem += (f"Google Maps shows {f['n_online']} reviews. Outscraper, the collection service we used, returned "
+                    f"{f['n_total']} of them: that is our dataset. Their average is {f['avg']} out of five. ")
+    else:
+        problem += f"On Google, it has {f['avg']} stars out of five, over {f['n_total']} ratings. "
+    problem += "Looks great. "
     if f.get("avg_written"):
-        problem += (f"But only {f['n_written']} people actually wrote something, and when they write, the average drops "
-                    f"to {f['avg_written']}. {f['one_star']} of them gave a single star. ")
-    problem += "The average hides what people are really saying."
+        problem += (f"But only {f['n_written']} people wrote something, and their average drops to {f['avg_written']}, "
+                    f"with {f['one_star']} one-star reviews. ")
+    problem += "The average hides what people really say."
     add("problem", problem)
 
-    add("github", "The whole project is open source and on GitHub: the code, the anonymized data and the documentation. "
-                  "The reviews were collected with Outscraper, and every reviewer's name was removed before the "
-                  "analysis. The README explains the problem, the architecture and the results, and a single button "
-                  "opens the project in Google Colab.")
+    add("github", "Everything is open source on GitHub: a small Python package, the anonymized data, ten automated "
+                  "tests and the documentation. Reviewers' names are removed as soon as a file is loaded. The README "
+                  "explains the problem, the architecture and the results, and one button opens the project in "
+                  "Google Colab.")
 
-    add("colab", "In Colab, you pick a free GPU and click Run all. The notebook downloads three open-source models from "
-                 "Hugging Face. A multilingual BERT model reads the sentiment of each review. An mDeBERTa model sorts "
-                 "the reviews into themes, with zero-shot learning, so it needs no training data. And Qwen 2.5, a small "
-                 "language model, writes the diagnosis and the replies. The last cell starts the web app.")
+    add("colab", "Reproducing it takes three clicks: open the notebook, pick the free GPU, and click Run all. The "
+                 "notebook pulls the latest code, installs the versioned requirements and downloads three open models "
+                 "from Hugging Face. No API key, no paid service, nothing to install on your computer. The last cell "
+                 "starts the web app.")
 
-    add("app", f"Here is the app. We drop the review file exported from Google, give the business a name and choose its "
-               f"type: a school. Each type comes with its own themes, such as admissions, teaching or the campus, and "
-               f"you can edit them. Then we click Analyze.")
+    add("architecture", "Under the hood, a loader reads any CSV or Excel export and strips personal data. A "
+                        "multilingual BERT model rates each review: that is transfer learning. An mDeBERTa model "
+                        "assigns themes with zero-shot learning, without a single labeled example. Then Qwen 2.5 writes "
+                        "the diagnosis and the replies, grounded in the computed statistics. Chaining three transformer "
+                        "models, and testing them against real customer ratings, takes us beyond the course content.")
 
-    add("wait", "The analysis takes about a minute on a GPU, so let's skip ahead.")
+    add("app", "Here is the app. We drop the review file exported from Google, name the business and choose its "
+               "type: a school. Each type comes with editable themes, such as admissions or the campus. "
+               "Then we click Analyze.")
 
-    kpi = (f"The dashboard opens with the main figures: {f['avg']} stars over all ratings, {f['n_written']} written "
-           f"reviews, {f['pct_neg']} percent of them negative")
+    add("wait", "On the free GPU, the analysis takes about a minute, so let's skip ahead.")
+
+    kpi = (f"The dashboard opens with the main figures: {f['avg']} stars, {f['n_written']} written reviews, "
+           f"{f['pct_neg']} percent of them negative")
     if f.get("unanswered") is not None:
         kpi += f", and {f['unanswered']} complaints that never got an answer."
-        if f["no_reply_at_all"]:
-            kpi += " In this export, not a single review received a reply."
     else:
         kpi += "."
     add("kpis", kpi)
 
-    diag = ("Next comes the AI diagnosis. The language model does not read hundreds of reviews blindly: it receives "
-            "the statistics and real excerpts, and writes strengths, weak points and three priority actions.")
+    diag = ("Next, the AI diagnosis: strengths, weak points and three priority actions. The model does not read "
+            "hundreds of reviews blindly: it receives the statistics and real excerpts.")
     if f.get("action"):
         diag += f" Its first recommendation here: {f['action']}."
     add("diagnosis", diag)
 
-    ins = f"The insights section shows how the written reviews split: {f['pct_pos']} percent positive and {f['pct_neg']} percent negative"
-    ins += f", and which topics dominate. {f['top_theme'].capitalize()} comes up most often." if f.get("top_theme") else "."
+    ins = f"The insights show how the written reviews split: {f['pct_pos']} percent positive and {f['pct_neg']} percent negative"
+    ins += f". {f['top_theme'].capitalize()} comes up most often." if f.get("top_theme") else "."
     add("insights", ins)
 
     if f.get("trend"):
         tr = f["trend"]
-        add("trend", f"Over time, the picture moves. The average was {tr['first_avg']} in {tr['first_year']}, fell to "
-                     f"{tr['worst_avg']} in {tr['worst_year']}, with {tr['worst_neg']} percent of one and two-star "
-                     f"ratings, and it is at {tr['last_avg']} in {tr['last_year']}. An owner sees at a glance whether "
-                     f"things are getting better.")
+        add("trend", f"Over time, the average fell from {tr['first_avg']} in {tr['first_year']} to {tr['worst_avg']} in "
+                     f"{tr['worst_year']}, and it is back at {tr['last_avg']} in {tr['last_year']}.")
 
-    matrix = ("The priority matrix is the chart a manager needs most. It places each theme by how often it is "
-              "mentioned, and by how people feel about it. ")
+    matrix = "The priority matrix places each theme by how often it is mentioned and how people feel about it. "
     if f.get("fix_theme"):
-        matrix += f"{f['fix_theme'].capitalize()} sits in the Fix first corner: it comes up often, and mostly in negative reviews."
+        matrix += f"{f['fix_theme'].capitalize()} sits in the Fix first corner: frequent, and mostly negative."
     elif f.get("weakest_theme"):
         matrix += f"No theme falls in the Fix first corner, and {f['weakest_theme']} is the one to watch."
     if f.get("best_theme"):
-        matrix += f" On the bright side, {f['best_theme']} is a strength to promote."
+        matrix += f" {f['best_theme'].capitalize()} is a strength to promote."
     add("matrix", matrix)
 
     if f.get("acc") is not None:
+        trust = ("Can we trust the AI? Customers' stars are the ground truth, so the app evaluates itself on every file. "
+                 f"Here, the model agrees with customers {f['acc']} percent of the time, ")
         if f["acc"] >= f["base"]:
-            trust = (f"Can we trust the AI? Every review comes with the stars its author gave, so the app checks itself. "
-                     f"Here, the model agrees with customers {f['acc']} percent of the time, against {f['base']} percent "
-                     f"for a naive guess.")
+            trust += f"against {f['base']} percent for a naive baseline."
         else:
-            trust = (f"Can we trust the AI? Every review comes with the stars its author gave, so the app checks itself. "
-                     f"Here, the model agrees with customers {f['acc']} percent of the time, below the {f['base']} percent "
-                     f"of a naive guess: short and mixed reviews are hard to read, and the app says so openly.")
+            trust += (f"below the {f['base']} percent of a naive baseline: short and mixed reviews are hard to read, "
+                      f"and the app says so openly.")
         add("trust", trust)
 
-    add("filters", "Filters let you dig deeper. Let's keep only the one and two-star reviews. The whole dashboard updates "
-                   "instantly, without running the models again.")
+    add("filters", "Filters let you dig deeper. Let's keep only the one and two-star reviews: the whole dashboard "
+                   "updates instantly, without running the models again.")
 
-    add("complaints", "Here are the complaints that never got an answer, newest first. For each one, ReviewPulse drafts "
-                      "a public reply in the language of the review, which addresses what the person actually wrote. "
-                      "The owner reads it, adjusts it and posts it.")
+    add("complaints", "Here are the complaints that never got an answer, newest first. For each one, ReviewPulse "
+                      "drafts a reply in the language of the review. A human stays in the loop: the owner reads it, "
+                      "adjusts it and posts it.")
 
-    add("assistant", "For any other review, the reply assistant writes a new draft on demand, in a few seconds.")
+    add("table", "At the bottom, every review sits in one table, written or star-only, answered or not, with the AI's "
+                 "reading of each one.")
 
-    add("table", "And at the bottom, every review sits in one table: written or star-only, answered or not, with the "
-                 "AI's reading of each one, ready to search and export.")
+    add("report", "Each analysis can also be exported as a static page on GitHub Pages, with a permanent link that "
+                  "anyone can open without Colab.")
 
-    add("evaluation", "For the curious, the model evaluation compares the predicted stars with the real ones, class by "
-                      "class, in a confusion matrix.")
+    add("reproduce", "To sum up the engineering: one notebook, the data in the repository, versioned dependencies, "
+                     "deterministic text generation and automated tests. A grader gets the same figures we show here. "
+                     "And to analyze another business, you simply drop its export: no code to change.")
 
-    add("report", "Finally, each analysis can be exported as a static page and published on GitHub Pages, which gives "
-                  "it a permanent link that anyone can open, without Colab.")
-
-    add("outro", "Large chains pay consultants and software to read their reviews. Most independent restaurants, shops "
-                 "and schools cannot. ReviewPulse gives them the same insight, for free, in minutes, with open models. "
-                 "This video was generated automatically by the project itself: the clicks, the voice and the editing. "
-                 "ReviewPulse: from hundreds of reviews to clear actions.")
+    add("outro", "Large chains pay consultants to read their reviews. Independent restaurants, shops and schools "
+                 "rarely can. Used widely, ReviewPulse would turn hours of reading into a weekly to-do list, get "
+                 "complaints answered, and show customers that their feedback changes things, for free. This video "
+                 "was generated automatically by the project itself. ReviewPulse: from hundreds of reviews to clear "
+                 "actions.")
     return seg
 
 
@@ -490,6 +499,9 @@ def problem_card(result, facts: dict) -> str:
                       f'<div style="font-size:16px;margin-top:4px">{html.escape(text)}</div></div>')
     written = (f'<div style="font-size:22px;margin-top:22px">Written reviews only: <b style="color:#C2410C">'
                f'{facts["avg_written"]} / 5</b> · {facts["one_star"]} one-star reviews</div>') if facts.get("avg_written") else ""
+    if facts.get("n_online"):
+        written += (f'<div class="muted" style="font-size:17px;margin-top:14px">Sample: {facts["n_total"]} of the '
+                    f'{facts["n_online"]} reviews shown on Google Maps, as returned by Outscraper</div>')
     return _card(f"""<div style="display:flex;gap:56px;align-items:center;padding:0 80px">
 <div style="flex:1"><div class="muted" style="font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Google Maps</div>
 <div class="t" style="font-size:44px;margin:6px 0 10px">{html.escape(result.business_name.split('·')[0].strip())}</div>
@@ -507,6 +519,62 @@ def end_card() -> str:
 <div>Code, data and user guide: <b>github.com/Monka31/reviewpulse</b></div>
 <div>Published reports: <b>monka31.github.io/reviewpulse</b></div></div>
 <div style="margin-top:40px;font-size:16px" class="muted">Narration, browsing and editing generated automatically by the project.</div></div>""")
+
+
+def _box(title: str, sub: str, color: str = "#00A0E0") -> str:
+    return (f'<div style="flex:1;background:#fff;border:1px solid #E4E7EC;border-top:5px solid {color};border-radius:14px;'
+            f'padding:18px 16px;min-height:150px"><div style="font-weight:700;font-size:20px">{title}</div>'
+            f'<div class="muted" style="font-size:15px;margin-top:8px;line-height:1.45">{sub}</div></div>')
+
+
+ARROW = '<div style="flex:none;align-self:center;font-size:30px;color:#98A2B3">&#8594;</div>'
+
+
+def architecture_card() -> str:
+    """How the pipeline is built, with the course concepts each step illustrates."""
+    steps = [
+        ("Load", "CSV or Excel export<br>columns detected<br>personal data removed", "#98A2B3"),
+        ("Sentiment", "BERT multilingual<br>1 to 5 stars<br><b>transfer learning</b>", "#00A0E0"),
+        ("Themes", "mDeBERTa NLI<br>editable themes<br><b>zero-shot learning</b>", "#0077B3"),
+        ("Statistics", "pandas<br>themes, trend,<br>priority matrix", "#98A2B3"),
+        ("Diagnosis and replies", "Qwen2.5 3B Instruct<br>grounded prompts<br><b>generative AI</b>", "#005A87"),
+        ("Dashboard", "Gradio app<br>HTML report on<br>GitHub Pages", "#1F8A70"),
+    ]
+    row = ARROW.join(_box(t, d, c) for t, d, c in steps)
+    chips = "".join(f'<span style="background:#E5F5FC;color:#005A87;font-weight:600;padding:8px 14px;border-radius:20px">{c}</span>'
+                    for c in ["Transfer learning", "Zero-shot learning", "Generative AI with grounding",
+                              "Evaluation against a baseline", "Human in the loop"])
+    return _card(f"""<div style="width:1320px">
+<div class="muted" style="font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Under the hood</div>
+<div class="t" style="font-size:44px;margin:4px 0 26px">Three open models from Hugging Face, one pipeline</div>
+<div style="display:flex;gap:10px">{row}</div>
+<div style="margin-top:34px;font-size:18px;font-weight:600">Course concepts applied</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:17px">{chips}</div>
+<div class="muted" style="margin-top:22px;font-size:17px">Beyond the course: three transformer models chained in one pipeline,
+and evaluated on every file against the stars customers gave.</div></div>""")
+
+
+def reproduce_card() -> str:
+    """Ease of implementation and repeatability, in one screen."""
+    steps = "".join(
+        f'<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px"><div style="flex:none;width:46px;height:46px;'
+        f'border-radius:50%;background:#00A0E0;color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;'
+        f'justify-content:center">{i}</div><div style="font-size:22px">{t}</div></div>'
+        for i, t in enumerate(["Open the notebook from the README", "Runtime: free T4 GPU", "Run all, then open the app link"], 1))
+    checks = "".join(
+        f'<div style="display:flex;gap:12px;margin-bottom:13px;font-size:19px"><span style="color:#1F8A70;font-weight:800">&#10003;</span>'
+        f'<span>{t}</span></div>'
+        for t in ["No API key, no paid service, nothing to install",
+                  "Code, data and documentation in one public repository",
+                  "Versioned dependencies in requirements.txt",
+                  "Deterministic text generation: same data, same text",
+                  "Automated tests for the whole pipeline",
+                  "Any business: drop its export, no code to change",
+                  "Also runs locally: pip install, then python app.py"])
+    return _card(f"""<div style="width:1240px;display:flex;gap:70px;align-items:center">
+<div style="flex:1"><div class="muted" style="font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Reproducible by design</div>
+<div class="t" style="font-size:46px;margin:4px 0 30px">Three clicks to re-run everything</div>{steps}</div>
+<div style="flex:1;background:#fff;border:1px solid #E4E7EC;border-radius:18px;padding:30px 32px">{checks}</div></div>""")
 
 
 def notebook_page() -> str:
@@ -615,6 +683,7 @@ def _record(segments, audio, app_url: str, result, frames_dir: Path, pad: float,
                     cam.scroll_to(page.evaluate("() => window.scrollY") + 520, 2.2)
                 cam.pause(0.9)
         segment("colab", colab)
+        segment("architecture", lambda: (html_page(architecture_card()), cam.shot()))
 
         # ---- 4. The app: upload, settings, analyze
         def app_setup():
@@ -777,6 +846,7 @@ def _record(segments, audio, app_url: str, result, frames_dir: Path, pad: float,
             cam.pause(0.8)
             cam.scroll_to(2200, 3.0)
         segment("report", report)
+        segment("reproduce", lambda: (html_page(reproduce_card()), cam.shot()))
 
         segment("outro", lambda: (html_page(end_card()), cam.shot()))
 
@@ -874,7 +944,8 @@ def make_demo_video(data_file: str | Path = ROOT / "data" / "reviews_ESSEC_Cergy
                     business_type: str = "School / University",
                     out_path: str | Path = ROOT / "outputs" / "ReviewPulse_demo.mp4",
                     voice_engine: str | None = None, voice: str | None = None,
-                    subtitles: bool = True, keep_frames: bool = False) -> Path:
+                    subtitles: bool = True, keep_frames: bool = False,
+                    reviews_online: int | None = None) -> Path:
     """Build the whole demo video and return its path."""
     import reviewpulse as rp
     from app import build_app, THEME, APP_CSS
@@ -893,6 +964,7 @@ def make_demo_video(data_file: str | Path = ROOT / "data" / "reviews_ESSEC_Cergy
     result = rp.run_pipeline(data_file, business_name=business_name, business_type=business_type,
                              max_reviews=rp.config.MAX_REVIEWS_DEFAULT, language="English", n_replies=5)
     result.reviews.attrs["source_path"] = str(data_file)
+    result.reviews.attrs["reviews_online"] = reviews_online or ONLINE_TOTALS.get(data_file.name)
     facts = demo_facts(result)
     (work / "facts.json").write_text(json.dumps(facts, indent=2, default=str))
     segments = build_script(facts)

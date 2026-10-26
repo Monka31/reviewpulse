@@ -4,7 +4,9 @@ The assignment asks us to show where and how we used AI tools, with the prompts.
 
 ## 1. AI assistants used
 
-We used Claude (Anthropic, on claude.ai) throughout the project: to choose the idea and the data source, to compare architectures, to write and debug the code, to design the interface and to draft the documentation and the video script. [Add any other tool the team used, for example ChatGPT or GitHub Copilot, with what it was used for.]
+We used Claude (Anthropic, on claude.ai) throughout the project: to choose the idea and the data source, to compare architectures, to write and debug the code, to design the interface and to draft the documentation and the video script. No other AI assistant, such as ChatGPT or GitHub Copilot, was used. The voice of the demo video is also produced by an AI model (Microsoft neural voices through edge-tts, or the open-source Kokoro model from Hugging Face), as described in the technical report.
+
+The complete conversation, with every prompt quoted word for word and a summary of each answer, is in [conversation_transcript.md](conversation_transcript.md). The section below groups the same prompts by topic.
 
 The prompts were written in French. Each one is quoted in French, followed by an English translation and the outcome. Every output was read, tested and corrected by the team before being kept. When code failed in Colab, we pasted the error message back and asked for a fix, so several prompts below are error reports.
 
@@ -76,7 +78,11 @@ Prompt 38. "Peux-tu stp me faire toute la doc explicative, tout tout tout, répo
 
 Prompts 39 to 43. "Penses-tu qu'il serait possible de faire une démo automatisée avec une voix off qui explique tout ?" (could the demo be automated, with a voice-over explaining everything?), "Peut-on le faire uniquement avec le fichier ESSEC ? Cela suffit-il ?" (can we do it with the ESSEC file only, is that enough?), "Comment automatiser la démo ?" (how would we automate it?), "Je veux tout automatiser à 100 %, est-ce possible ?" (I want it 100% automated, is that possible?) and "Je veux le faire uniquement avec les données de l'ESSEC, automatise tout, je veux que la démo puisse montrer le GitHub, le Google Colab, lance l'analyse, lance l'outil, défile tout, explique tout" (only the ESSEC data, automate everything, show GitHub and Colab, run the analysis, open the tool, scroll through everything and explain it all). The assistant compared a fully automated video with a recording narrated by the team, pointed out that a synthetic voice could cost points on delivery, and built `reviewpulse/demo_video.py` and section 8 of the notebook. The narration is written from the analysis results, so the video quotes only figures the application computed.
 
-[Add the prompts used after this point.]
+### Checking the demo against the assignment
+
+Prompt 44. "Es-tu sûr que la vidéo de démo répond à tout ?" (Are you sure the demo video covers everything?), with the assignment and its grading scheme. The assistant compared the narration with each criterion. The name, the purpose, the market need, reproducibility, the cited tools and the duration were covered, but the video did not link the models to the concepts of the course, did not say why the project goes beyond the course, and said little about the value of the tool if it were widely used. It also found unfinished placeholders in the documentation.
+
+Prompt 45. "J'aimerais que tu ajoutes à la vidéo ces différents points, ajoute qu'Outscraper nous a donné 250 avis sur l'ESSEC et non les 382 qu'il y a en ligne. Rends à la vidéo un peu plus de côté technique et montre la facilité d'implémentation et de répétabilité, c'est ce qui est demandé." (Add these points to the video, say that Outscraper gave us 250 ESSEC reviews rather than the 382 online, make the video more technical and show how easy it is to implement and repeat), followed by the names of the team members and "Peux-tu faire un extract de tous mes prompts ainsi que tes réponses et les intégrer ?" (extract all my prompts and your answers and add them to the documentation). The narration now gives the 250 out of 382 figure, names the course concept behind each model and explains the value at scale. Two shots were added, an architecture screen and a reproducibility screen, and two repetitive shots were removed to stay under five minutes. The full conversation was exported to `conversation_transcript.md`.
 
 ## 3. Prompts used inside the application
 
